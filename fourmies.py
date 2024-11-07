@@ -17,7 +17,7 @@ Bouffe_Taille = 20
 Nid_Taille = 50
 Fourmi_Taille = 4
 Pheromone_Taille = 10
-Nbr_Fourmi = 50
+Nbr_Fourmi = 10
 
 VITESSE_REDUITE = 13
 DETECTION_PHEROMONE_DISTANCE = 15  # Distance de détection des phéromones
