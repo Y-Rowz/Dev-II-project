@@ -60,6 +60,7 @@ class Food:
     
     def is_empty(self) -> bool:
         """
+        Loan :
         But de la méthode
         La méthode is_empty vérifie si la source de nourriture est vide, c'est-à-dire si elle n'a plus de ressources disponibles.
     
@@ -67,11 +68,11 @@ class Food:
         - L'instance de la classe Food est valide et son attribut resources doit être défini.
     
         Postconditions
-        - Si le nombre de ressources dans la source de nourriture est inférieur ou égal à 0, la méthode retourne True, indiquant que la source est vide.
+        - Si le nombre de ressources dans la source de nourriture est inférieur ou égal à 0, la méthode retourne True, indiquant que la source est bel et bien vide.
         - Sinon, elle retourne False.
     
         Programmation défensive
-        - Vérification que l'attribut resources est bien défini et qu'il est de type entier avant de procéder à la comparaison.
+        - Vérifier que l'attribut resources est bien défini et qu'il est de type integer avant de procéder à la comparaison.
         """
         return self.resources <= 0
 
@@ -96,8 +97,8 @@ class Nest:
         - Si la capacité maximale est atteinte, le nombre de ressources ne dépasse pas la limite.
     
         Programmation défensive
-        - Vérification que la clé max_nest_resources est bien définie dans Config.GAME_SETTINGS.
-        - Vérification que la valeur actuelle des ressources dans le nid ne dépasse pas la capacité maximale.
+        - Vérifier que la clé max_nest_resources est bien définie dans Config.GAME_SETTINGS.
+        - Vérifier que la valeur actuelle des ressources dans le nid ne dépasse pas la capacité maximale.
         """
         self.resources = min(Config.GAME_SETTINGS['max_nest_resources'], self.resources + 1)
     
@@ -182,8 +183,8 @@ class AntColonySimulation:
         - Chaque fourmi a une position aléatoire et est prête à commencer à chercher de la nourriture.
     
         Programmation défensive
-        - Vérification que Config.GAME_SETTINGS['ant_count'] est bien un entier valide et supérieur à 0 avant de créer les fourmis.
-        - Vérification que la position du nid est valide et bien définie.
+        - Vérifier que Config.GAME_SETTINGS['ant_count'] est bien un entier valide et supérieur à 0 avant de créer les fourmis.
+        - Vérifier que la position du nid est valide et bien définie.
         """
         return [Ant(self._random_nest_position()) 
                 for _ in range(Config.GAME_SETTINGS['ant_count'])]
@@ -202,8 +203,9 @@ class AntColonySimulation:
         - La méthode retourne un tuple de coordonnées (x, y) correspondant à une position aléatoire autour du nid.
     
         Programmation défensive
-        - Vérification que self.nest.position existe et contient des coordonnées valides (x, y).
-        - Vérification que les valeurs des tailles du nid (Config.SIZES['nest']) sont raisonnables pour éviter des erreurs lors du calcul des positions.
+        - Vérifier que self.nest.position existe et contient des coordonnées valides (x, y).
+        - Vérifier que les valeurs des tailles du nid (Config.SIZES['nest']) sont raisonnables.
+        - Eviter des erreurs lors du calcul des positions.
         """
         return (self.nest.position[0] + random.randint(-Config.SIZES['nest'], Config.SIZES['nest']),
                 self.nest.position[1] + random.randint(-Config.SIZES['nest'], Config.SIZES['nest']))
@@ -286,9 +288,9 @@ class AntColonySimulation:
         - Si la nourriture est épuisée, la fourmi retourne à son état de recherche.
     
         Programmation défensive
-        - Vérification que ant.target_food est bien une instance de la classe Food et qu'elle est définie avant de tenter de se déplacer.
-        - Vérification que la nourriture n'est pas déjà vide avant que la fourmi n'essaie d'en prendre.
-        - Gestion des erreurs si la distance entre la fourmi et la source de nourriture est trop faible pour un mouvement correct.
+        - Vérifier que ant.target_food est bien une instance de la classe Food et qu'elle est définie avant de tenter de se déplacer.
+        - Vérifier que la nourriture n'est pas déjà vide avant que la fourmi n'essaie d'en prendre.
+        - Gerer les erreurs si la distance entre la fourmi et la source de nourriture est trop faible pour un mouvement fluide et correct.
         """
         if not ant.target_food or ant.target_food not in self.food_sources:
             ant.target_food = None
