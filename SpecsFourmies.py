@@ -59,6 +59,20 @@ class Food:
             self.resources -= 1
     
     def is_empty(self) -> bool:
+        """
+        But de la méthode
+        La méthode is_empty vérifie si la source de nourriture est vide, c'est-à-dire si elle n'a plus de ressources disponibles.
+    
+        Préconditions
+        - L'instance de la classe Food est valide et son attribut resources doit être défini.
+    
+        Postconditions
+        - Si le nombre de ressources dans la source de nourriture est inférieur ou égal à 0, la méthode retourne True, indiquant que la source est vide.
+        - Sinon, elle retourne False.
+    
+        Programmation défensive
+        - Vérification que l'attribut resources est bien défini et qu'il est de type entier avant de procéder à la comparaison.
+        """
         return self.resources <= 0
 
 class Nest:
@@ -68,6 +82,23 @@ class Nest:
         self.resources = 0
     
     def add_resource(self) -> None:
+        """
+        But de la méthode
+        La méthode add_resource permet d'ajouter une ressource au nid de la fourmi. 
+        Si le nombre de ressources du nid atteint la capacité maximale, aucune ressource n'est ajoutée.
+    
+        Préconditions
+        - L'instance de la classe Nest est valide et sa position ainsi que ses ressources doivent être définies.
+        - La clé max_nest_resources dans Config.GAME_SETTINGS doit être définie et contenir une valeur numérique valide.
+    
+        Postconditions
+        - Si le nombre de ressources dans le nid est inférieur à la capacité maximale, une ressource est ajoutée.
+        - Si la capacité maximale est atteinte, le nombre de ressources ne dépasse pas la limite.
+    
+        Programmation défensive
+        - Vérification que la clé max_nest_resources est bien définie dans Config.GAME_SETTINGS.
+        - Vérification que la valeur actuelle des ressources dans le nid ne dépasse pas la capacité maximale.
+        """
         self.resources = min(Config.GAME_SETTINGS['max_nest_resources'], self.resources + 1)
     
     def is_full(self) -> bool:
@@ -137,10 +168,43 @@ class AntColonySimulation:
                 for i in range(Config.GAME_SETTINGS['food_count'])]
     
     def _create_ants(self) -> List[Ant]:
+        """
+        But de la méthode
+        La méthode _create_ants est responsable de la création des objets Ant (fourmis) au début de la simulation. 
+        Chaque fourmi est placée aléatoirement autour du nid et prête à commencer ses actions.
+    
+        Préconditions
+        - L'instance de la classe AntColonySimulation est initialisée.
+        - La valeur de Config.GAME_SETTINGS['ant_count'] doit être définie et être un nombre entier valide.
+    
+        Postconditions
+        - Une liste d'objets Ant est retournée, chaque objet ayant une position initiale près du nid.
+        - Chaque fourmi a une position aléatoire et est prête à commencer à chercher de la nourriture.
+    
+        Programmation défensive
+        - Vérification que Config.GAME_SETTINGS['ant_count'] est bien un entier valide et supérieur à 0 avant de créer les fourmis.
+        - Vérification que la position du nid est valide et bien définie.
+        """
         return [Ant(self._random_nest_position()) 
                 for _ in range(Config.GAME_SETTINGS['ant_count'])]
     
     def _random_nest_position(self) -> Tuple[float, float]:
+        """
+        But de la méthode
+        La méthode _random_nest_position génère une position aléatoire pour chaque fourmi autour du nid. 
+        Cette position sert à initialiser les fourmis au début de la simulation.
+    
+        Préconditions
+        - L'instance de la classe AntColonySimulation est initialisée.
+        - La position du nid doit être valide, définie par self.nest.position.
+    
+        Postconditions
+        - La méthode retourne un tuple de coordonnées (x, y) correspondant à une position aléatoire autour du nid.
+    
+        Programmation défensive
+        - Vérification que self.nest.position existe et contient des coordonnées valides (x, y).
+        - Vérification que les valeurs des tailles du nid (Config.SIZES['nest']) sont raisonnables pour éviter des erreurs lors du calcul des positions.
+        """
         return (self.nest.position[0] + random.randint(-Config.SIZES['nest'], Config.SIZES['nest']),
                 self.nest.position[1] + random.randint(-Config.SIZES['nest'], Config.SIZES['nest']))
     
@@ -208,6 +272,24 @@ class AntColonySimulation:
             ant.emitting_pheromones = False
     
     def _process_return_to_food(self, ant: Ant) -> None:
+        """
+        But de la méthode
+        Cette méthode gère le mouvement de la fourmi lorsqu'elle retourne à une source de nourriture après en avoir collecté. 
+        Elle met également à jour son état et son positionnement en fonction de la distance avec la nourriture.
+    
+        Préconditions
+        - L'instance ant doit être une instance valide de la classe Ant, avec une position et un attribut target_food définis.
+        - L'instance target_food de la fourmi doit être une source de nourriture valide.
+    
+        Postconditions
+        - La fourmi se déplace vers la nourriture et met à jour sa position.
+        - Si la nourriture est épuisée, la fourmi retourne à son état de recherche.
+    
+        Programmation défensive
+        - Vérification que ant.target_food est bien une instance de la classe Food et qu'elle est définie avant de tenter de se déplacer.
+        - Vérification que la nourriture n'est pas déjà vide avant que la fourmi n'essaie d'en prendre.
+        - Gestion des erreurs si la distance entre la fourmi et la source de nourriture est trop faible pour un mouvement correct.
+        """
         if not ant.target_food or ant.target_food not in self.food_sources:
             ant.target_food = None
             ant.food_number = 0
