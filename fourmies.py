@@ -12,10 +12,12 @@ Bouffe_Couleur = (0, 255, 0)
 Nid_Couleur = (101, 67, 33)
 Fourmi_Couleur = (0, 0, 0)
 Pheromone_Couleur = (200, 200, 255)
+Reine_Couleur = (0, 0, 0)
 Nbr_Bouffe = 5
 Bouffe_Taille = 20
 Nid_Taille = 50
 Fourmi_Taille = 4
+Reine_Taille = 10
 Pheromone_Taille = 10
 Nbr_Fourmi = 10
 
@@ -29,15 +31,28 @@ RESSOURCES_NID_MAX = 100
 
 # Créer la fenêtre
 screen = pygame.display.set_mode((longueur, largeur))
-pygame.display.set_caption("Simulation de Colonies de Fourmis - MVP")
+pygame.display.set_caption("Simulation de Colonie de Fourmis - MVP")
 font = pygame.font.SysFont(None, 24)
 win_font = pygame.font.SysFont(None, 72)
 
-# Liste des phéromones
+
 pheromones = []
 
-# Classe pour la Fourmi
+class Reine:
+    '''
+    
+    '''
+    def __init__(self, position):
+        self.position = position
+
+    def afficher(self, surface):
+        pygame.draw.circle(surface, Reine_Couleur, (int(self.position[0]), int(self.position[1])), Reine_Taille)
+
+
 class Fourmi:
+    '''
+    
+    '''
     def __init__(self, position):
         self.position = position
         self.nourriture_en_stock = 0
@@ -153,9 +168,12 @@ Nid_Position = (random.randint(0, longueur), random.randint(0, largeur))
 Spawn_Fourmis = [Fourmi((Nid_Position[0] + random.randint(-Nid_Taille, Nid_Taille),
                          Nid_Position[1] + random.randint(-Nid_Taille, Nid_Taille))) for _ in range(Nbr_Fourmi)]
 
+# Initialiser la reine près du nid
+reine = Reine((Nid_Position[0] + 10, Nid_Position[1] + 10))
+
 # Boucle principale
 running = True
-you_win = False  # Variable pour déclencher le message "You Win"
+you_win = False
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -164,6 +182,8 @@ while running:
     screen.fill(Bg_Couleur)
     pygame.draw.circle(screen, Nid_Couleur, Nid_Position, Nid_Taille)
     screen.blit(font.render(f"Ressources du Nid : {ressources_nid}", True, (255, 255, 255)), (Nid_Position[0] - 50, Nid_Position[1] - 40))
+
+    reine.afficher(screen)
 
     for bouffe in Spawn_Bouffe:
         pos = bouffe["position"]
@@ -190,9 +210,9 @@ while running:
     if ressources_nid >= RESSOURCES_NID_MAX:
         you_win = True
 
-    # Afficher "You Win" si les ressources du nid sont à 100
+    # Afficher "Gagné !" si les ressources du nid sont à 100
     if you_win:
-        win_text = win_font.render("You Win", True, (255, 255, 255))
+        win_text = win_font.render("Gagné !", True, (255, 255, 255))
         screen.blit(win_text, (longueur // 2 - win_text.get_width() // 2, largeur // 2 - win_text.get_height() // 2))
 
     pygame.display.flip()
