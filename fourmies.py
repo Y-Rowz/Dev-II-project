@@ -16,40 +16,40 @@ class Config:
     - SIZES : Définissent les tailles des différents objets du jeu
     - GAME_SETTINGS : Paramètres configurables de la mécanique du jeu
     
-    PRE: Aucune
+    PRE: /
     POST: Initialise une configuration statique pour la simulation
     """
     WINDOW_WIDTH = 1920
     WINDOW_HEIGHT = 1080
     
-    # Palette de couleurs utilisant des tuples RVB pour divers éléments du jeu
+    # Palette de couleurs utilisant des tuples RGB pour les differents éléments de la simulation
     COLORS = {
-        'background': (181, 101, 29),  # Marron terreux pour le fond
-        'food': (0, 255, 0),           # Vert vif pour les sources de nourriture
-        'nest': (101, 67, 33),         # Marron pour le nid
-        'ant': (0, 0, 0),              # Noir pour les fourmis
-        'queen': (0, 0, 0),            # Noir pour la reine
-        'pheromone': (200, 200, 255),  # Bleu clair pour les traces de phéromones
-        'text': (255, 255, 255)        # Blanc pour le texte
+        'background': (181, 101, 29),
+        'food': (0, 255, 0),
+        'nest': (101, 67, 33),
+        'ant': (0, 0, 0),
+        'queen': (0, 0, 0),
+        'pheromone': (200, 200, 255),
+        'text': (255, 255, 255)
     }
     
-    # Tailles définissant l'échelle de rendu des différents objets du jeu
+    # Tailles définissant l'échelle de rendu
     SIZES = {
-        'food': 20,       # Taille des cercles de sources de nourriture
-        'nest': 50,       # Taille du cercle du nid
-        'ant': 4,         # Taille des fourmis individuelles
-        'queen': 10,      # Taille de la reine fourmi
-        'pheromone': 10   # Taille des marqueurs de phéromones
+        'food': 20,
+        'nest': 50,
+        'ant': 4,
+        'queen': 10,
+        'pheromone': 10
     }
     
-    # Paramètres du jeu pour contrôler la dynamique de la simulation
+    # contrôler la dynamique de la simulation
     GAME_SETTINGS = {
-        'food_count': 5,                     # Nombre initial de sources de nourriture
-        'ant_count': 70,                     # Nombre total de fourmis dans la colonie
-        'speed_reducer': 13,                 # Divise la vitesse de déplacement pour contrôler la mobilité des fourmis
-        'pheromone_detection_distance': 15,  # Distance à laquelle une fourmi peut détecter une phéromone
-        'min_pheromone_distance': 20,        # Distance minimale entre les dépôts de phéromones
-        'max_nest_resources': 100            # Ressources maximales que le nid peut accumuler
+        'food_count': 5,
+        'ant_count': 70,
+        'speed_reducer': 13,
+        'pheromone_detection_distance': 15,
+        'min_pheromone_distance': 20,
+        'max_nest_resources': 100
     }
 
 class Queen:
@@ -62,7 +62,12 @@ class Queen:
     POST: Initialise la reine à la position spécifiée
     """
     def __init__(self, position: Tuple[float, float]):
-        # Stocke la position de la reine sur l'écran
+        """
+        Initialise une instance de la reine.
+
+        PRE: position est un tuple de coordonnées valides (x, y)
+        POST: La reine est créée et positionnée aux coordonnées spécifiées
+        """
         self.position = position
     
     def render(self, screen: pygame.Surface) -> None:
@@ -86,10 +91,10 @@ class Food:
     POST: Initialise une source de nourriture avec des ressources aléatoires
     """
     def __init__(self, position: Tuple[float, float], number: int):
-        self.position = position  # Emplacement de la source de nourriture
-        self.resources = random.randint(10, 50)  # Ressources initiales aléatoires
-        self.pheromone_path_active = True  # Indicateur de la voie de phéromones initiale
-        self.number = number  # Identifiant unique de la source de nourriture
+        self.position = position
+        self.resources = random.randint(10, 50)  # ressources initiales aléatoires entre les valeurs indiquées
+        self.pheromone_path_active = True  # indicateur de la voie de phéromones initiale
+        self.number = number
     
     def take_resource(self) -> None:
         """
@@ -105,7 +110,7 @@ class Food:
         """
         Vérifie si la source de nourriture est complètement épuisée
         
-        PRE: Aucune
+        PRE: /
         POST: Retourne True si resources <= 0, False sinon
         """
         return self.resources <= 0
@@ -119,14 +124,14 @@ class Nest:
     POST: Initialise le nid à la position spécifiée avec 0 ressources
     """
     def __init__(self, position: Tuple[float, float]):
-        self.position = position  # Emplacement du nid
-        self.resources = 0  # Aucune ressource au début
+        self.position = position
+        self.resources = 0
     
     def add_resource(self) -> None:
         """
         Ajoute une ressource au nid, en respectant la capacité maximale
         
-        PRE: Aucune
+        PRE: /
         POST: Incrémente les ressources du nid jusqu'à la capacité maximale
         """
         self.resources = min(Config.GAME_SETTINGS['max_nest_resources'], self.resources + 1)
@@ -135,7 +140,7 @@ class Nest:
         """
         Vérifie si le nid a atteint sa capacité maximale de ressources
         
-        PRE: Aucune
+        PRE: /
         POST: Retourne True si resources >= capacité maximale, False sinon
         """
         return self.resources >= Config.GAME_SETTINGS['max_nest_resources']
@@ -149,9 +154,9 @@ class Pheromone:
     POST: Initialise un marqueur de phéromones associé à une source de nourriture
     """
     def __init__(self, position: Tuple[float, float], food_source, food_number: int):
-        self.position = position  # Position du marqueur de phéromones
-        self.food_source = food_source  # Source de nourriture associée
-        self.food_number = food_number  # Numéro de la source de nourriture
+        self.position = position  #position du marqueur de phéromones
+        self.food_source = food_source  # source de nourriture associée
+        self.food_number = food_number  # numéro de la source de nourriture
 
 class Ant:
     """
@@ -162,20 +167,20 @@ class Ant:
     POST: Initialise une fourmi avec une position et une direction aléatoires
     """
     def __init__(self, position: Tuple[float, float]):
-        self.position = position  # Position actuelle de la fourmi
-        self.has_food = False  # Indique si la fourmi transporte de la nourriture
-        self.direction = self._random_direction()  # Direction initiale aléatoire
-        self.direction_time = time.time()  # Temps du dernier changement de direction
-        self.direction_duration = random.uniform(0.5, 2)  # Durée avant le prochain changement de direction
-        self.target_food = None  # Source de nourriture ciblée
-        self.emitting_pheromones = False  # Indique si la fourmi laisse des phéromones
-        self.food_number = 0  # Numéro de la source de nourriture
+        self.position = position
+        self.has_food = False  # indique si la fourmi transporte de la nourriture (initialement non)
+        self.direction = self._random_direction()  #direction initiale aléatoire
+        self.direction_time = time.time()  # temps du dernier changement de direction
+        self.direction_duration = random.uniform(0.5, 2)  # durée avant le prochain changement de direction
+        self.target_food = None  # source de nourriture ciblée
+        self.emitting_pheromones = False  # indique si la fourmi laisse des phéromones
+        self.food_number = 0  # Id de la source de nourriture
     
     def _random_direction(self) -> Tuple[float, float]:
         """
         Génère une direction de déplacement aléatoire
         
-        PRE: Aucune
+        PRE: /
         POST: Retourne un tuple de direction aléatoire normalisé
         """
         return (random.choice([-1, 0, 1]) / Config.GAME_SETTINGS['speed_reducer'],
@@ -185,14 +190,14 @@ class Ant:
         """
         Renvoie l'état actuel de la fourmi
         
-        PRE: Aucune
+        PRE: /
         POST: Retourne une chaîne décrivant l'état de la fourmi
         """
         if self.has_food:
-            return "returning_to_nest"  # Retourne au nid avec de la nourriture
+            return "returning_to_nest"  # retourne au nid avec de la nourriture
         elif self.target_food:
-            return "going_to_food"  # Se dirige vers une source de nourriture
-        return "searching"  # Recherche de la nourriture
+            return "going_to_food"  # va vers la source de nourriture
+        return "searching"  # recherche
     
     def move_randomly(self, width: int, height: int) -> None:
         """
@@ -202,6 +207,7 @@ class Ant:
         POST: Met à jour la position de la fourmi dans les limites de l'écran
         """
         if time.time() - self.direction_time >= self.direction_duration:
+
             # Changement de direction après un certain temps
             self.direction = self._random_direction()
             self.direction_time = time.time()
@@ -216,7 +222,7 @@ class AntColonySimulation:
     """
     Classe principale gérant la simulation complète de la colonie de fourmis.
     
-    PRE: Aucune condition préalable spécifique
+    PRE: /
     POST: Initialise tous les composants nécessaires pour la simulation
     RAISE: 
     - pygame.error si l'initialisation de Pygame échoue
@@ -231,38 +237,38 @@ class AntColonySimulation:
         - Fenêtre de jeu créée
         - Nid, reine, sources de nourriture et fourmis générés
         """
-        # Initialisation de Pygame pour la création de l'interface graphique
+
         pygame.init()
         
-        # Création de la fenêtre de jeu avec les dimensions définies dans la configuration
+        # Reprend les parametres de la fenetre pour les dimentions
         self.screen = pygame.display.set_mode((Config.WINDOW_WIDTH, Config.WINDOW_HEIGHT))
         
-        # Définition du titre de la fenêtre
+        # Titre
         pygame.display.set_caption("Simulation de Colonie de Fourmis - MVP")
         
-        # Création des polices pour afficher du texte (normal et grand)
-        self.font = pygame.font.SysFont(None, 24)
-        self.win_font = pygame.font.SysFont(None, 72)
+
+        self.font = pygame.font.SysFont(None, 24)  # informations classic
+        self.win_font = pygame.font.SysFont(None, 72)  # messages importants
         
-        # Placement aléatoire du nid sur l'écran
+        # Placement aléatoire du nid
         self.nest = Nest((random.randint(0, Config.WINDOW_WIDTH),
                          random.randint(0, Config.WINDOW_HEIGHT)))
         
-        # Placement de la reine à proximité du nid
+        # Placement de la reine
         self.queen = Queen((self.nest.position[0] + 10, self.nest.position[1] + 10))
         
-        # Génération des sources de nourriture
+        # sources de nourriture
         self.food_sources = self._create_food_sources()
         
-        # Création de la population de fourmis
+        # Fourmis
         self.ants = self._create_ants()
         
-        # Liste pour stocker les phéromones laissées par les fourmis
+        # Liste pour suivre les traces de phéromones laissées par les fourmis
         self.pheromones: List[Pheromone] = []
         
-        # Indicateurs de l'état de la simulation
-        self.running = True  # La simulation est-elle en cours ?
-        self.victory = False  # La colonie a-t-elle atteint son objectif ?
+        
+        self.running = True  # Contrôle l'exécution continue de la simulation
+        self.victory = False  # Indicateur de succès de la colonie
     
     def _create_food_sources(self) -> List[Food]:
         """
@@ -273,6 +279,7 @@ class AntColonySimulation:
         - Retourne une liste de sources de nourriture générées aléatoirement
         - Chaque source a une position unique sur l'écran
         """
+        # Générer des sources de nourriture aléatoirement selon le nombre configuré
         return [Food((random.randint(0, Config.WINDOW_WIDTH),
                      random.randint(0, Config.WINDOW_HEIGHT)), i + 1)
                 for i in range(Config.GAME_SETTINGS['food_count'])]
@@ -286,6 +293,7 @@ class AntColonySimulation:
         - Retourne une liste de fourmis générées
         - Chaque fourmi est positionnée à proximité du nid
         """
+        # Créer le nombre de fourmis spécifié, toutes placées près du nid
         return [Ant(self._random_nest_position()) 
                 for _ in range(Config.GAME_SETTINGS['ant_count'])]
     
@@ -298,6 +306,7 @@ class AntColonySimulation:
         - Retourne des coordonnées x et y à proximité du nid
         - Position générée de manière aléatoire dans un rayon défini
         """
+        # Générer des coordonnées légèrement dispersées autour du nid
         return (self.nest.position[0] + random.randint(-Config.SIZES['nest'], Config.SIZES['nest']),
                 self.nest.position[1] + random.randint(-Config.SIZES['nest'], Config.SIZES['nest']))
     
@@ -310,6 +319,7 @@ class AntColonySimulation:
         - Comportement des fourmis mis à jour
         - Conditions de victoire vérifiées
         """
+        # Mettre à jour le comportement des fourmis et vérifier si la colonie a atteint son objectif
         self._process_ants()
         self._check_victory()
     
@@ -327,14 +337,25 @@ class AntColonySimulation:
         - État et position de chaque fourmi mis à jour
         - Interactions avec l'environnement (nourriture, phéromones) traitées
         """
+
+        # Parcourir chaque fourmi et gérer son comportement en fonction de son état
+
         for ant in self.ants:
             if ant.get_state() == "searching":
+
+                # Vérifier d'abord les phéromones, sinon se déplacer aléatoirement
                 if not self._detect_pheromone(ant):
                     ant.move_randomly(Config.WINDOW_WIDTH, Config.WINDOW_HEIGHT)
                     self._detect_food(ant)
+
             elif ant.get_state() == "returning_to_nest":
+
+                # Gérer le retour de la fourmi chargée de nourriture vers le nid
                 self._process_return_to_nest(ant)
+
             elif ant.get_state() == "going_to_food":
+
+                # Gérer le déplacement de la fourmi vers une source de nourriture
                 self._process_return_to_food(ant)
     
     def _detect_food(self, ant: Ant) -> bool:
@@ -348,10 +369,16 @@ class AntColonySimulation:
         - Retourne True si nourriture détectée, False sinon
         - Gère la collecte de ressources si une source est proche
         """
+
+        # Parcourt toutes les sources de nourriture disponibles
+        # Calcule la distance entre la fourmi et chaque source
+        # Vérifie si la source est à portée et gère la collecte si possible
         for food in self.food_sources:
             distance = math.hypot(ant.position[0] - food.position[0],
                                 ant.position[1] - food.position[1])
+
             if distance < Config.SIZES['food']:
+
                 if food.pheromone_path_active:
                     ant.has_food = True
                     ant.target_food = food
@@ -359,11 +386,13 @@ class AntColonySimulation:
                     ant.emitting_pheromones = True
                     food.pheromone_path_active = False
                     ant.food_number = food.number
+
                 elif not food.is_empty():
                     ant.has_food = True
                     ant.target_food = food
                     food.take_resource()
                     ant.food_number = food.number
+
                 return True
         return False
     
@@ -373,16 +402,22 @@ class AntColonySimulation:
         
         PRE: 
         - Liste des phéromones initialisée
-        - Fourmi en mode recherche
+        - Fourmi en mode "searching"
         POST: 
         - Retourne True si phéromone détectée, False sinon
         - Définit la cible de nourriture si une phéromone est trouvée
         """
+
+        # Recherche de phéromones à proximité de la fourmi
+        # Calcule la distance entre la fourmi et chaque phéromone
+        # Définit une cible de nourriture si une phéromone est détectée
         for pheromone in self.pheromones:
             distance = math.hypot(ant.position[0] - pheromone.position[0],
                                 ant.position[1] - pheromone.position[1])
+
             if distance < Config.GAME_SETTINGS['pheromone_detection_distance']:
                 ant.target_food = pheromone.food_source
+
                 return True
         return False
     
@@ -398,6 +433,10 @@ class AntColonySimulation:
         - Phéromones déposées si nécessaire
         - Ressources ajoutées au nid si la fourmi y arrive
         """
+
+        # Calcul de la direction et de la distance vers le nid
+        # Déplace la fourmi progressivement vers le nid
+        # Dépose des phéromones si nécessaire lors du trajet
         dx = self.nest.position[0] - ant.position[0]
         dy = self.nest.position[1] - ant.position[1]
         distance = math.hypot(dx, dy)
@@ -411,6 +450,7 @@ class AntColonySimulation:
             if ant.emitting_pheromones:
                 self._add_pheromone(ant)
         
+        # Vérifie si la fourmi est arrivée au nid et dépose ses ressources
         if distance < Config.SIZES['nest'] and ant.has_food:
             self.nest.add_resource()
             ant.has_food = False
@@ -428,11 +468,17 @@ class AntColonySimulation:
         - Ressources collectées si la source est atteinte
         - Gestion de l'épuisement des sources de nourriture
         """
+
+        # Vérifie l'existence de la source de nourriture ciblée
+        # Réinitialise la cible si la source n'existe plus
         if not ant.target_food or ant.target_food not in self.food_sources:
             ant.target_food = None
             ant.food_number = 0
             return
+
         
+        # Calcul de la direction et de la distance vers la source de nourriture
+        # Déplace la fourmi progressivement vers la source
         dx = ant.target_food.position[0] - ant.position[0]
         dy = ant.target_food.position[1] - ant.position[1]
         distance = math.hypot(dx, dy)
@@ -442,10 +488,14 @@ class AntColonySimulation:
                 ant.position[0] + (dx / distance) * (5 / Config.GAME_SETTINGS['speed_reducer']),
                 ant.position[1] + (dy / distance) * (5 / Config.GAME_SETTINGS['speed_reducer'])
             )
+
         
+        # Collecte des ressources à l'arrivée à la source
+        # Gestion de l'épuisement de la source de nourriture
         if distance < Config.SIZES['food'] and not ant.target_food.is_empty():
             ant.has_food = True
             ant.target_food.take_resource()
+
             if ant.target_food.is_empty():
                 self._remove_food_pheromones(ant.target_food.number)
                 self.food_sources.remove(ant.target_food)
@@ -462,6 +512,8 @@ class AntColonySimulation:
         POST: 
         - Nouvelle phéromone ajoutée si la distance minimale est respectée
         """
+        # Vérifie la distance minimale entre les phéromones
+        # Ajoute une nouvelle phéromone si l'espacement est suffisant
         if not self.pheromones or math.hypot(
             ant.position[0] - self.pheromones[-1].position[0],
             ant.position[1] - self.pheromones[-1].position[1]
@@ -478,6 +530,8 @@ class AntColonySimulation:
         POST: 
         - Phéromones liées à la source de nourriture supprimées
         """
+
+        # Filtre et supprime les phéromones associées à une source de nourriture spécifique
         self.pheromones = [p for p in self.pheromones if p.food_number != food_number]
     
     def _check_victory(self) -> None:
@@ -493,6 +547,8 @@ class AntColonySimulation:
         Déclare la victoire lorsque le nid a accumulé le nombre maximum 
         de ressources configuré.
         """
+
+
         if self.nest.is_full():
             self.victory = True
     
@@ -507,7 +563,7 @@ class AntColonySimulation:
         - Phéromones
         - Reine
         - Fourmis
-        - Message de victoire si applicable
+        - Message de fin si applicable
 
         PRE: 
         - L'écran Pygame est initialisé
@@ -517,13 +573,19 @@ class AntColonySimulation:
         - L'écran est mis à jour avec tous les éléments dessinés
         - L'affichage est rafraîchi
         """
+
+        # Efface l'écran avec la couleur de fond
         self.screen.fill(Config.COLORS['background'])
+
+        # Dessine successivement tous les éléments de la simulation
         self._render_nest()
         self._render_food()
         self._render_pheromones()
         self._render_queen()
         self._render_ants()
         self._render_victory()
+
+        # Met à jour l'affichage
         pygame.display.flip()
         
     def _render_nest(self) -> None:
@@ -539,8 +601,11 @@ class AntColonySimulation:
         - Le nid est dessiné sur l'écran
         - Le nombre de ressources est affiché
         """
+
+        # Dessine le nid
         pygame.draw.circle(self.screen, Config.COLORS['nest'],
                         self.nest.position, Config.SIZES['nest'])
+        # Affiche le nombre de ressources du nid
         resources_text = self.font.render(f"Ressources du Nid : {self.nest.resources}",
                                         True, Config.COLORS['text'])
         self.screen.blit(resources_text,
@@ -559,9 +624,13 @@ class AntColonySimulation:
         - Chaque source de nourriture est dessinée
         - Le numéro et les ressources de chaque source sont affichés
         """
+
+        # Parcourt et dessine chaque source de nourriture
         for food in self.food_sources:
             pygame.draw.circle(self.screen, Config.COLORS['food'],
                             food.position, Config.SIZES['food'])
+
+            # Affiche le numéro et les ressources restantes
             food_text = self.font.render(f"{food.number} ({food.resources})",
                                     True, (0, 0, 0))
             self.screen.blit(food_text,
@@ -578,6 +647,7 @@ class AntColonySimulation:
         POST:
         - Toutes les phéromones sont dessinées sur l'écran
         """
+        # Dessine un petit cercle pour chaque trace de phéromone
         for pheromone in self.pheromones:
             pygame.draw.circle(self.screen, Config.COLORS['pheromone'],
                             (int(pheromone.position[0]), int(pheromone.position[1])),
@@ -594,6 +664,8 @@ class AntColonySimulation:
         POST:
         - La reine est dessinée sur l'écran
         """
+
+        # Appelle la méthode de render de la reine
         self.queen.render(self.screen)
         
     def _render_ants(self) -> None:
@@ -607,6 +679,8 @@ class AntColonySimulation:
         POST:
         - Toutes les fourmis sont dessinées sur l'écran
         """
+
+        # Dessine les fourmis sous forme de point / cercle
         for ant in self.ants:
             pygame.draw.circle(self.screen, Config.COLORS['ant'],
                             (int(ant.position[0]), int(ant.position[1])),
@@ -614,16 +688,18 @@ class AntColonySimulation:
         
     def _render_victory(self) -> None:
         """
-        Affiche un message de victoire si la colonie a atteint son objectif.
+        Affiche un message de fin si la colonie a atteint son objectif.
 
         PRE:
-        - La police de victoire est initialisée
-        - L'état de victoire est défini
+        - La police du message est initialisée
+        - L'état du message est défini
         - L'écran Pygame est prêt
 
         POST:
         - Un message de fin est affiché si la condition est remplie
         """
+        # Vérifie si la fin de la simulation (100 food->nest) est atteint
+        # Affiche le message centré à l'ecran
         if self.victory:
             win_text = self.win_font.render("Simulation terminée.", True, Config.COLORS['text'])
             self.screen.blit(win_text,
@@ -642,6 +718,7 @@ class AntColonySimulation:
         - La simulation est terminée proprement
         - Pygame est fermé correctement
         """
+        # Boucle principale qui gère les événements, met à jour et affiche la simulation
         while self.running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -654,4 +731,4 @@ class AntColonySimulation:
 
 if __name__ == "__main__":
     simulation = AntColonySimulation()
-    simulation.run()        
+    simulation.run()
