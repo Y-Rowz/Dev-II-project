@@ -14,7 +14,7 @@ class Food:
     def __init__(self, position: Tuple[float, float], number: int):
         self.position = position
         self.resources = random.randint(10, 50)  # ressources initiales aléatoires entre les valeurs indiquées
-        self.pheromone_path_active = True  # indicateur de la voie de phéromones initiale
+        self.pheromone_path_active = True
         self.number = number
     
     def take_resource(self) -> None:

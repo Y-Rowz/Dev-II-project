@@ -11,6 +11,6 @@ class Pheromone:
     POST: Initialise un marqueur de phéromones associé à une source de nourriture
     """
     def __init__(self, position: Tuple[float, float], food_source, food_number: int):
-        self.position = position  #position du marqueur de phéromones
-        self.food_source = food_source  # source de nourriture associée
-        self.food_number = food_number  # numéro de la source de nourriture
+        self.position = position
+        self.food_source = food_source
+        self.food_number = food_number

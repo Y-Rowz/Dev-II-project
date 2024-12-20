@@ -40,10 +40,10 @@ class Ant:
         POST: Retourne une chaîne décrivant l'état de la fourmi
         """
         if self.has_food:
-            return "returning_to_nest"  # retourne au nid avec de la nourriture
+            return "returning_to_nest"
         elif self.target_food:
-            return "going_to_food"  # va vers la source de nourriture
-        return "searching"  # recherche
+            return "going_to_food"
+        return "searching"
     
     def move_randomly(self, width: int, height: int) -> None:
         """
