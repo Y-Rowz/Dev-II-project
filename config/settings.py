@@ -43,5 +43,6 @@ class Config:
         'speed_reducer': 30,
         'pheromone_detection_distance': 15,
         'min_pheromone_distance': 30,
-        'max_nest_resources': 100
+        'max_nest_resources': 100,
+        'ant_speed': 2
     }

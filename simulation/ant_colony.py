@@ -1,6 +1,9 @@
+
 import pygame
 import random
 import math
+import time
+from models.menace import Menace
 from typing import List, Tuple
 from config.settings import Config
 from models.ant import Ant
@@ -8,6 +11,9 @@ from models.food import Food
 from models.nest import Nest
 from models.pheromone import Pheromone
 from models.queen import Queen
+from models.nourrice import Nourrice
+from models.garde import Garde
+from models.ouvriere import Ouvriere
 
 
 class AntColonySimulation:
@@ -61,6 +67,9 @@ class AntColonySimulation:
         
         self.running = True  # Contrôle l'exécution continue de la simulation
         self.victory = False  # Indicateur de succès de la colonie
+
+        self.menaces = []  # Liste pour stocker les menaces
+        self.last_menace_spawn_time = time.time()  #
     
     def _create_food_sources(self) -> List[Food]:
         """
@@ -80,14 +89,24 @@ class AntColonySimulation:
         """
         Méthode privée pour créer la population initiale de fourmis.
         
-        PRE: Configuration des paramètres de jeu et nid initialisés
-        POST: 
-        - Retourne une liste de fourmis générées
-        - Chaque fourmi est positionnée à proximité du nid
+        Chaque fourmi a une probabilité de rôle :
+        - 25% Nourrice
+        - 25% Garde
+        - 50% Ouvrière
         """
-        # Créer le nombre de fourmis spécifié, toutes placées près du nid
-        return [Ant(self._random_nest_position()) 
-                for _ in range(Config.GAME_SETTINGS['ant_count'])]
+
+        ants = []
+        for _ in range(Config.GAME_SETTINGS['ant_count']):
+            position = self._random_nest_position()
+            roll = random.random()
+            if roll < 0.25:
+                ants.append(Nourrice(position))
+            elif roll < 0.50:
+                ants.append(Garde(position))
+            else:
+                ants.append(Ouvriere(position))
+        return ants
+
     
     def _random_nest_position(self) -> Tuple[float, float]:
         """
@@ -114,6 +133,11 @@ class AntColonySimulation:
         # Mettre à jour le comportement des fourmis et vérifier si la colonie a atteint son objectif
         self._process_ants()
         self._check_victory()
+        self._spawn_menace()
+        self._check_menace_collisions()
+        self._update_pheromones() 
+        for menace in self.menaces:
+            menace.move()
     
     def _process_ants(self) -> None:
         """
@@ -132,24 +156,102 @@ class AntColonySimulation:
 
         # Parcourir chaque fourmi et gérer son comportement en fonction de son état
 
-        for ant in self.ants:
-            if ant.get_state() == "searching":
-
-                # Vérifier d'abord les phéromones, sinon se déplacer aléatoirement
-                if not self._detect_pheromone(ant):
-                    ant.move_randomly(Config.WINDOW_WIDTH, Config.WINDOW_HEIGHT)
-                    self._detect_food(ant)
-
-            elif ant.get_state() == "returning_to_nest":
-
-                # Gérer le retour de la fourmi chargée de nourriture vers le nid
-                self._process_return_to_nest(ant)
-
-            elif ant.get_state() == "going_to_food":
-
-                # Gérer le déplacement de la fourmi vers une source de nourriture
-                self._process_return_to_food(ant)
     
+        """
+        Gère le comportement de chaque fourmi en appelant sa méthode spécifique perform_action().
+        """
+        for ant in self.ants:
+            if isinstance(ant, Nourrice):
+                ant.perform_action(self)  # Appel spécifique à la nourrice
+            else:
+                ant.perform_action(self)  # Garde ou ouvrière
+
+    def _spawn_menace(self) -> None:
+        """
+        Tente de spawner une menace toutes les minutes avec 33% de chance.
+        Limite : 4 menaces maximum.
+        """
+        if len(self.menaces) < 4 and time.time() - self.last_menace_spawn_time >= 60:
+            self.last_menace_spawn_time = time.time()  # Réinitialise le temps du dernier spawn
+            if random.random() <= 1:  # 33% de chance de spawn
+                menace = Menace()
+                self.menaces.append(menace)
+                print(f"Nouvelle menace apparue à {menace.position}. Nombre total de menaces : {len(self.menaces)}")
+    
+    def _check_menace_collisions(self) -> None:
+        """
+        Vérifie les collisions entre les menaces et les fourmis.
+        - Si une menace touche une fourmi, la fourmi disparaît.
+        - Une phéromone d'alerte est laissée à la position de la fourmi.
+        - Si une menace touche le nid, la simulation s'arrête (game over).
+        """
+        for menace in self.menaces:
+            for ant in list(self.ants):  # Utilisation d'une copie pour éviter des erreurs
+                distance = math.hypot(menace.position[0] - ant.position[0], menace.position[1] - ant.position[1])
+                if distance < menace.size:
+                    self.ants.remove(ant)
+                    print(f"Une fourmi a été éliminée par une menace à {ant.position}.")
+
+                    # Ajoute une phéromone d'alerte
+                    self.pheromones.append(Pheromone(
+                        position=ant.position,
+                        food_source=None,
+                        food_number=0,
+                        alert=True,
+                        expiration_time=time.time() + 30
+                    ))
+                    print(f"Phéromone d'alerte ajoutée à {ant.position}.")
+
+    def _handle_pheromone_menace_collision(self, menace):
+        """
+        Gère les collisions entre une menace et les phéromones.
+        Si une menace touche un phéromone, augmente la taille du phéromone.
+        """
+        for pheromone in self.pheromones:
+            distance_to_pheromone = math.hypot(
+                menace.position[0] - pheromone.position[0],
+                menace.position[1] - pheromone.position[1]
+            )
+
+            if distance_to_pheromone < menace.size:  # Collision détectée
+                print(f"Une menace a touché un phéromone à {pheromone.position}.")
+                # Pas besoin d'augmenter la taille, car elle est définie à la création
+
+
+    def _move_to_target(self, ant, target_position) -> None:
+        """
+        Déplace une fourmi en ligne droite vers une position cible.
+        """
+        dx = target_position[0] - ant.position[0]
+        dy = target_position[1] - ant.position[1]
+        distance = math.hypot(dx, dy)
+
+        if distance > 0:
+            speed = 2  # Ajuste la vitesse de déplacement ici
+            ant.position = (
+                ant.position[0] + (dx / distance) * speed,
+                ant.position[1] + (dy / distance) * speed,
+            )
+
+    def _inform_gardes(self, ant):
+        """
+        Informe les gardes de la position d'une menace et les dirige vers celle-ci.
+        """
+        for garde in self.ants:
+            if isinstance(garde, Garde):
+                garde.target_position = ant.target_pheromone.position
+                garde.is_attacking = True
+
+    def _spawn_food(self, position) -> None:
+        """
+        Fait apparaître une source de nourriture après la destruction d'une menace.
+        """
+        food_amount = random.randint(10, 20)  # Génère une quantité aléatoire de nourriture
+        new_food = Food(position, len(self.food_sources) + 1)
+        new_food.resources = food_amount  # Définit la quantité de nourriture
+        self.food_sources.append(new_food)
+        print(f"Nouvelle source de nourriture créée avec {food_amount} unités à la position {position}.")
+
     def _detect_food(self, ant: Ant) -> bool:
         """
         Vérifie si une fourmi est à proximité d'une source de nourriture.
@@ -165,12 +267,12 @@ class AntColonySimulation:
         # Parcourt toutes les sources de nourriture disponibles
         # Calcule la distance entre la fourmi et chaque source
         # Vérifie si la source est à portée et gère la collecte si possible
+        if not isinstance(ant, Ouvriere):
+            return False
+
         for food in self.food_sources:
-            distance = math.hypot(ant.position[0] - food.position[0],
-                                ant.position[1] - food.position[1])
-
+            distance = math.hypot(ant.position[0] - food.position[0], ant.position[1] - food.position[1])
             if distance < Config.SIZES['food']:
-
                 if food.pheromone_path_active:
                     ant.has_food = True
                     ant.target_food = food
@@ -178,15 +280,25 @@ class AntColonySimulation:
                     ant.emitting_pheromones = True
                     food.pheromone_path_active = False
                     ant.food_number = food.number
-
                 elif not food.is_empty():
                     ant.has_food = True
                     ant.target_food = food
                     food.take_resource()
                     ant.food_number = food.number
-
                 return True
         return False
+    
+    def _update_pheromones(self) -> None:
+        """
+        Met à jour les phéromones :
+        - Supprime les phéromones d'alerte expirées.
+        """
+        current_time = time.time()
+        self.pheromones = [
+            pheromone for pheromone in self.pheromones
+            if not pheromone.alert or (pheromone.alert and pheromone.expiration_time > current_time)
+        ]
+
     
     def _detect_pheromone(self, ant: Ant) -> bool:
         """
@@ -204,13 +316,18 @@ class AntColonySimulation:
         # Calcule la distance entre la fourmi et chaque phéromone
         # Définit une cible de nourriture si une phéromone est détectée
         for pheromone in self.pheromones:
-            distance = math.hypot(ant.position[0] - pheromone.position[0],
-                                ant.position[1] - pheromone.position[1])
-
+            distance = math.hypot(
+                ant.position[0] - pheromone.position[0],
+                ant.position[1] - pheromone.position[1]
+            )
             if distance < Config.GAME_SETTINGS['pheromone_detection_distance']:
-                ant.target_food = pheromone.food_source
-
-                return True
+                if isinstance(ant, Ouvriere) and not pheromone.alert:
+                    ant.target_food = pheromone.food_source
+                    return True
+                elif isinstance(ant, Garde) and pheromone.alert:
+                    ant.target_pheromone = pheromone
+                    ant.is_attacking = True
+                    return True
         return False
     
     def _process_return_to_nest(self, ant: Ant) -> None:
@@ -225,28 +342,36 @@ class AntColonySimulation:
         - Phéromones déposées si nécessaire
         - Ressources ajoutées au nid si la fourmi y arrive
         """
-
-        # Calcul de la direction et de la distance vers le nid
-        # Déplace la fourmi progressivement vers le nid
-        # Dépose des phéromones si nécessaire lors du trajet
         dx = self.nest.position[0] - ant.position[0]
         dy = self.nest.position[1] - ant.position[1]
         distance = math.hypot(dx, dy)
-        
+
         if distance > 0:
             ant.position = (
                 ant.position[0] + (dx / distance) * (5 / Config.GAME_SETTINGS['speed_reducer']),
                 ant.position[1] + (dy / distance) * (5 / Config.GAME_SETTINGS['speed_reducer'])
             )
-            
-            if ant.emitting_pheromones:
-                self._add_pheromone(ant)
-        
-        # Vérifie si la fourmi est arrivée au nid et dépose ses ressources
-        if distance < Config.SIZES['nest'] and ant.has_food:
-            self.nest.add_resource()
-            ant.has_food = False
-            ant.emitting_pheromones = False
+
+        if distance < Config.SIZES['nest']:
+            if isinstance(ant, Ouvriere) and ant.state == "returning_to_nest":
+                print("Ouvrière informe les gardes d'une menace.")
+                self._activate_gardes()
+                ant.state = "searching"  # L'ouvrière reprend son état normal
+
+            if ant.has_food:
+                self.nest.add_resource()
+                ant.has_food = False
+                ant.emitting_pheromones = False
+
+    def _activate_gardes(self):
+        for pheromone in self.pheromones:
+            if pheromone.alert:
+                for garde in self.ants:
+                    if isinstance(garde, Garde):
+                        garde.target_position = pheromone.position
+                        garde.is_attacking = True
+                        print(f"Garde activé pour défendre contre une menace à {pheromone.position}.")
+
     
     def _process_return_to_food(self, ant: Ant) -> None:
         """
@@ -293,6 +418,37 @@ class AntColonySimulation:
                 self.food_sources.remove(ant.target_food)
                 ant.target_food = None
                 ant.food_number = 0
+    
+    def _check_and_spawn_new_ant(self) -> bool:
+        """
+        Vérifie si 3 stacks sont disponibles pour créer une nouvelle fourmi.
+        Si oui, spawn une nouvelle fourmi et réinitialise les stacks.
+
+        Retourne True si une nouvelle fourmi est créée, False sinon.
+        """
+        total_stacks = sum(nourrice.stack for nourrice in self.ants if isinstance(nourrice, Nourrice))
+        
+        if total_stacks >= 3:
+            # Réinitialiser les stacks
+            for nourrice in self.ants:
+                if isinstance(nourrice, Nourrice):
+                    nourrice.stack = 0
+            
+            # Créer une nouvelle fourmi
+            position = self._random_nest_position()
+            roll = random.random()
+            if roll < 0.25:
+                self.ants.append(Nourrice(position))
+            elif roll < 0.50:
+                self.ants.append(Garde(position))
+            else:
+                self.ants.append(Ouvriere(position))
+            
+            print("Nouvelle fourmi créée !")
+            return True
+
+        return False
+
     
     def _add_pheromone(self, ant: Ant) -> None:
         """
@@ -375,6 +531,7 @@ class AntColonySimulation:
         self._render_pheromones()
         self._render_queen()
         self._render_ants()
+        self._render_menaces()
         self._render_victory()
 
         # Met à jour l'affichage
@@ -441,10 +598,13 @@ class AntColonySimulation:
         """
         # Dessine un petit cercle pour chaque trace de phéromone
         for pheromone in self.pheromones:
-            pygame.draw.circle(self.screen, Config.COLORS['pheromone'],
-                            (int(pheromone.position[0]), int(pheromone.position[1])),
-                            Config.SIZES['pheromone'])
-        
+            pygame.draw.circle(
+                self.screen,
+                Config.COLORS['pheromone'],
+                (int(pheromone.position[0]), int(pheromone.position[1])),
+                int(pheromone.size)  # Taille selon le type
+            )
+            
     def _render_queen(self) -> None:
         """
         Dessine la reine de la colonie.
@@ -472,12 +632,12 @@ class AntColonySimulation:
         - Toutes les fourmis sont dessinées sur l'écran
         """
 
-        # Dessine les fourmis sous forme de point / cercle
+
         for ant in self.ants:
-            pygame.draw.circle(self.screen, Config.COLORS['ant'],
+            pygame.draw.circle(self.screen, ant.color,
                             (int(ant.position[0]), int(ant.position[1])),
-                            Config.SIZES['ant'])
-        
+                            ant.size)
+
     def _render_victory(self) -> None:
         """
         Affiche un message de fin si la colonie a atteint son objectif.
@@ -498,6 +658,16 @@ class AntColonySimulation:
             self.screen.blit(win_text,
                         (Config.WINDOW_WIDTH // 2 - win_text.get_width() // 2,
                             Config.WINDOW_HEIGHT // 2 - win_text.get_height() // 2))
+            
+    def _render_menaces(self) -> None:
+        """
+        Dessine toutes les menaces sur la carte.
+        """
+        for menace in self.menaces:
+            pygame.draw.circle(self.screen, menace.color,
+                            (int(menace.position[0]), int(menace.position[1])),
+                            menace.size)
+
         
     def run(self) -> None:
         """
