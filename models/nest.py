@@ -21,7 +21,10 @@ class Nest:
         PRE: /
         POST: Incrémente les ressources du nid jusqu'à la capacité maximale
         """
-        self.resources = min(Config.GAME_SETTINGS['max_nest_resources'], self.resources + 1)
+        self.resources = min(
+            Config.GAME_SETTINGS['max_nest_resources'],
+            self.resources + 1
+        )
     
     def is_full(self) -> bool:
         """
