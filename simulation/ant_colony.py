@@ -30,32 +30,62 @@ class AntColonySimulation:
         - Nid, reine, sources de nourriture et fourmis générés
         """
         pygame.init()
-        self.screen = pygame.display.set_mode(
+        self.__screen = pygame.display.set_mode(
             (Config.WINDOW_WIDTH, Config.WINDOW_HEIGHT)
         )
         pygame.display.set_caption("Simulation de Colonie de Fourmis - MVP")
 
-        self.font = pygame.font.SysFont(None, 24)
-        self.win_font = pygame.font.SysFont(None, 72)
+        self.__font = pygame.font.SysFont(None, 24)
+        self.__win_font = pygame.font.SysFont(None, 72)
 
-        self.nest = Nest((
+        self.__nest = Nest((
             random.randint(0, Config.WINDOW_WIDTH),
             random.randint(0, Config.WINDOW_HEIGHT)
         ))
 
-        self.queen = Queen((
-            self.nest.position[0] + 10,
-            self.nest.position[1] + 10
+        self.__queen = Queen((
+            self.__nest.position[0] + 10,
+            self.__nest.position[1] + 10
         ))
 
-        self.food_sources = self._create_food_sources()
-        self.ants = self._create_ants()
-        self.pheromones: List[Pheromone] = []
+        self.__food_sources = self.__create_food_sources()
+        self.__ants = self.__create_ants()
+        self.__pheromones: List[Pheromone] = []
 
-        self.running = True
-        self.victory = False
+        self.__running = True
+        self.__victory = False
 
-    def _create_food_sources(self) -> List[Food]:
+    @property
+    def victory(self) -> bool:
+        """
+        Getter pour l'état de victoire.
+        
+        PRE: /
+        POST: Retourne l'état de victoire actuel
+        """
+        return self.__victory
+
+    @property
+    def running(self) -> bool:
+        """
+        Getter pour l'état d'exécution.
+        
+        PRE: /
+        POST: Retourne si la simulation est en cours
+        """
+        return self.__running
+
+    @running.setter
+    def running(self, value: bool) -> None:
+        """
+        Setter pour l'état d'exécution.
+        
+        PRE: value est un booléen
+        POST: Met à jour l'état d'exécution
+        """
+        self.__running = value
+
+    def __create_food_sources(self) -> List[Food]:
         """
         Méthode privée pour créer un ensemble de sources de nourriture.
 
@@ -72,7 +102,7 @@ class AntColonySimulation:
             for i in range(Config.GAME_SETTINGS['food_count'])
         ]
 
-    def _create_ants(self) -> List[Ant]:
+    def __create_ants(self) -> List[Ant]:
         """
         Méthode privée pour créer la population initiale de fourmis.
 
@@ -82,11 +112,11 @@ class AntColonySimulation:
         - Chaque fourmi est positionnée à proximité du nid
         """
         return [
-            Ant(self._random_nest_position())
+            Ant(self.__random_nest_position())
             for _ in range(Config.GAME_SETTINGS['ant_count'])
         ]
 
-    def _random_nest_position(self) -> Tuple[float, float]:
+    def __random_nest_position(self) -> Tuple[float, float]:
         """
         Génère une position aléatoire à proximité du nid pour les fourmis.
 
@@ -96,11 +126,11 @@ class AntColonySimulation:
         - Position générée de manière aléatoire dans un rayon défini
         """
         return (
-            self.nest.position[0] + random.randint(
+            self.__nest.position[0] + random.randint(
                 -Config.SIZES['nest'],
                 Config.SIZES['nest']
             ),
-            self.nest.position[1] + random.randint(
+            self.__nest.position[1] + random.randint(
                 -Config.SIZES['nest'],
                 Config.SIZES['nest']
             )
@@ -115,10 +145,10 @@ class AntColonySimulation:
         - Comportement des fourmis mis à jour
         - Conditions de victoire vérifiées
         """
-        self._process_ants()
-        self._check_victory()
+        self.__process_ants()
+        self.__check_victory()
 
-    def _process_ants(self) -> None:
+    def __process_ants(self) -> None:
         """
         Gère le comportement de chaque fourmi selon son état actuel.
 
@@ -127,17 +157,17 @@ class AntColonySimulation:
         - État et position de chaque fourmi mis à jour
         - Interactions avec l'environnement (nourriture, phéromones) traitées
         """
-        for ant in self.ants:
+        for ant in self.__ants:
             if ant.get_state() == "searching":
-                if not self._detect_pheromone(ant):
+                if not self.__detect_pheromone(ant):
                     ant.move_randomly(Config.WINDOW_WIDTH, Config.WINDOW_HEIGHT)
-                    self._detect_food(ant)
+                    self.__detect_food(ant)
             elif ant.get_state() == "returning_to_nest":
-                self._process_return_to_nest(ant)
+                self.__process_return_to_nest(ant)
             elif ant.get_state() == "going_to_food":
-                self._process_return_to_food(ant)
+                self.__process_return_to_food(ant)
 
-    def _detect_food(self, ant: Ant) -> bool:
+    def __detect_food(self, ant: Ant) -> bool:
         """
         Vérifie si une fourmi est à proximité d'une source de nourriture.
 
@@ -148,7 +178,7 @@ class AntColonySimulation:
         - Retourne True si nourriture détectée, False sinon
         - Gère la collecte de ressources si une source est proche
         """
-        for food in self.food_sources:
+        for food in self.__food_sources:
             distance = math.hypot(
                 ant.position[0] - food.position[0],
                 ant.position[1] - food.position[1]
@@ -170,7 +200,7 @@ class AntColonySimulation:
                 return True
         return False
 
-    def _detect_pheromone(self, ant: Ant) -> bool:
+    def __detect_pheromone(self, ant: Ant) -> bool:
         """
         Permet à une fourmi de détecter les traces de phéromones.
 
@@ -181,7 +211,7 @@ class AntColonySimulation:
         - Retourne True si phéromone détectée, False sinon
         - Définit la cible de nourriture si une phéromone est trouvée
         """
-        for pheromone in self.pheromones:
+        for pheromone in self.__pheromones:
             distance = math.hypot(
                 ant.position[0] - pheromone.position[0],
                 ant.position[1] - pheromone.position[1]
@@ -192,7 +222,7 @@ class AntColonySimulation:
                 return True
         return False
 
-    def _process_return_to_nest(self, ant: Ant) -> None:
+    def __process_return_to_nest(self, ant: Ant) -> None:
         """
         Gère le déplacement d'une fourmi transportant de la nourriture vers le nid.
 
@@ -204,8 +234,8 @@ class AntColonySimulation:
         - Phéromones déposées si nécessaire
         - Ressources ajoutées au nid si la fourmi y arrive
         """
-        dx = self.nest.position[0] - ant.position[0]
-        dy = self.nest.position[1] - ant.position[1]
+        dx = self.__nest.position[0] - ant.position[0]
+        dy = self.__nest.position[1] - ant.position[1]
         distance = math.hypot(dx, dy)
 
         if distance > 0:
@@ -216,14 +246,14 @@ class AntColonySimulation:
             )
 
             if ant.emitting_pheromones:
-                self._add_pheromone(ant)
+                self.__add_pheromone(ant)
 
         if distance < Config.SIZES['nest'] and ant.has_food:
-            self.nest.add_resource()
+            self.__nest.add_resource()
             ant.has_food = False
             ant.emitting_pheromones = False
 
-    def _process_return_to_food(self, ant: Ant) -> None:
+    def __process_return_to_food(self, ant: Ant) -> None:
         """
         Gère le déplacement d'une fourmi vers une source de nourriture ciblée.
 
@@ -235,7 +265,7 @@ class AntColonySimulation:
         - Ressources collectées si la source est atteinte
         - Gestion de l'épuisement des sources de nourriture
         """
-        if not ant.target_food or ant.target_food not in self.food_sources:
+        if not ant.target_food or ant.target_food not in self.__food_sources:
             ant.target_food = None
             ant.food_number = 0
             return
@@ -256,12 +286,12 @@ class AntColonySimulation:
             ant.target_food.take_resource()
 
             if ant.target_food.is_empty():
-                self._remove_food_pheromones(ant.target_food.number)
-                self.food_sources.remove(ant.target_food)
+                self.__remove_food_pheromones(ant.target_food.number)
+                self.__food_sources.remove(ant.target_food)
                 ant.target_food = None
                 ant.food_number = 0
 
-    def _add_pheromone(self, ant: Ant) -> None:
+    def __add_pheromone(self, ant: Ant) -> None:
         """
         Ajoute une trace de phéromone laissée par une fourmi.
 
@@ -271,22 +301,22 @@ class AntColonySimulation:
         POST:
         - Nouvelle phéromone ajoutée si la distance minimale est respectée
         """
-        if not self.pheromones:
-            self.pheromones.append(
+        if not self.__pheromones:
+            self.__pheromones.append(
                 Pheromone(ant.position, ant.target_food, ant.food_number)
             )
             return
 
         last_pheromone_distance = math.hypot(
-            ant.position[0] - self.pheromones[-1].position[0],
-            ant.position[1] - self.pheromones[-1].position[1]
+            ant.position[0] - self.__pheromones[-1].position[0],
+            ant.position[1] - self.__pheromones[-1].position[1]
         )
         if last_pheromone_distance > Config.GAME_SETTINGS['min_pheromone_distance']:
-            self.pheromones.append(
+            self.__pheromones.append(
                 Pheromone(ant.position, ant.target_food, ant.food_number)
             )
 
-    def _remove_food_pheromones(self, food_number: int) -> None:
+    def __remove_food_pheromones(self, food_number: int) -> None:
         """
         Supprime les phéromones associées à une source de nourriture épuisée.
 
@@ -296,11 +326,11 @@ class AntColonySimulation:
         POST:
         - Phéromones liées à la source de nourriture supprimées
         """
-        self.pheromones = [
-            p for p in self.pheromones if p.food_number != food_number
+        self.__pheromones = [
+            p for p in self.__pheromones if p.food_number != food_number
         ]
 
-    def _check_victory(self) -> None:
+    def __check_victory(self) -> None:
         """
         Vérifie si la colonie a atteint son objectif de ressources.
 
@@ -310,8 +340,8 @@ class AntColonySimulation:
         POST:
         - Drapeau de victoire mis à jour si objectif atteint
         """
-        if self.nest.is_full():
-            self.victory = True
+        if self.__nest.is_full():
+            self.__victory = True
 
     def render(self) -> None:
         """
@@ -324,18 +354,18 @@ class AntColonySimulation:
         - L'écran est mis à jour avec tous les éléments dessinés
         - L'affichage est rafraîchi
         """
-        self.screen.fill(Config.COLORS['background'])
+        self.__screen.fill(Config.COLORS['background'])
 
-        self._render_nest()
-        self._render_food()
-        self._render_pheromones()
-        self._render_queen()
-        self._render_ants()
-        self._render_victory()
+        self.__render_nest()
+        self.__render_food()
+        self.__render_pheromones()
+        self.__render_queen()
+        self.__render_ants()
+        self.__render_victory()
 
         pygame.display.flip()
 
-    def _render_nest(self) -> None:
+    def __render_nest(self) -> None:
         """
         Dessine le nid et affiche le nombre de ressources accumulées.
 
@@ -348,120 +378,116 @@ class AntColonySimulation:
         - Le nombre de ressources est affiché
         """
         pygame.draw.circle(
-            self.screen,
+            self.__screen,
             Config.COLORS['nest'],
-            self.nest.position,
+            self.__nest.position,
             Config.SIZES['nest']
         )
-        resources_text = self.font.render(
-            f"Ressources du Nid : {self.nest.resources}",
+        resources_text = self.__font.render(
+            f"Ressources du Nid : {self.__nest.resources}",
             True,
             Config.COLORS['text']
         )
-        self.screen.blit(
+        self.__screen.blit(
             resources_text,
-            (self.nest.position[0] - 50, self.nest.position[1] - 40)
+            (self.__nest.position[0] - 50, self.__nest.position[1] - 40)
         )
 
-    def _render_food(self) -> None:
+    def __render_food(self) -> None:
         """
         Dessine les sources de nourriture et leur information.
 
         PRE:
         - La liste des sources de nourriture n'est pas vide
         - L'écran Pygame est initialisé
-        - La police de caractères est prête
+        - La police de caractères est initialisée
         POST:
         - Chaque source de nourriture est dessinée
         - Le numéro et les ressources de chaque source sont affichés
         """
-        for food in self.food_sources:
+        for food in self.__food_sources:
             pygame.draw.circle(
-                self.screen,
+                self.__screen,
                 Config.COLORS['food'],
                 food.position,
                 Config.SIZES['food']
             )
-            food_text = self.font.render(
+            food_text = self.__font.render(
                 f"{food.number} ({food.resources})",
                 True,
-                (0, 0, 0)
+                Config.COLORS['text']
             )
-            self.screen.blit(
+            self.__screen.blit(
                 food_text,
                 (food.position[0] - 10, food.position[1] - 10)
             )
 
-    def _render_pheromones(self) -> None:
+    def __render_pheromones(self) -> None:
         """
         Dessine les traces de phéromones sur l'écran.
 
         PRE:
         - La liste des phéromones est initialisée
-        - L'écran Pygame est prêt
-
+        - L'écran Pygame est initialisé
         POST:
         - Toutes les phéromones sont dessinées sur l'écran
         """
-        for pheromone in self.pheromones:
+        for pheromone in self.__pheromones:
             pygame.draw.circle(
-                self.screen,
+                self.__screen,
                 Config.COLORS['pheromone'],
                 (int(pheromone.position[0]), int(pheromone.position[1])),
                 Config.SIZES['pheromone']
             )
 
-    def _render_queen(self) -> None:
+    def __render_queen(self) -> None:
         """
         Dessine la reine de la colonie.
 
         PRE:
         - La reine existe et est initialisée
-        - L'écran Pygame est prêt
-
+        - L'écran Pygame est initialisé
         POST:
         - La reine est dessinée sur l'écran
         """
-        self.queen.render(self.screen)
+        self.__queen.render(self.__screen)
 
-    def _render_ants(self) -> None:
+    def __render_ants(self) -> None:
         """
         Dessine toutes les fourmis de la colonie.
 
         PRE:
         - La liste des fourmis est initialisée
-        - L'écran Pygame est prêt
-
+        - L'écran Pygame est initialisé
         POST:
         - Toutes les fourmis sont dessinées sur l'écran
         """
-        for ant in self.ants:
+        for ant in self.__ants:
             pygame.draw.circle(
-                self.screen,
+                self.__screen,
                 Config.COLORS['ant'],
                 (int(ant.position[0]), int(ant.position[1])),
                 Config.SIZES['ant']
             )
 
-    def _render_victory(self) -> None:
+    def __render_victory(self) -> None:
         """
         Affiche un message de fin si la colonie a atteint son objectif.
 
         PRE:
         - La police du message est initialisée
-        - L'état du message est défini
-        - L'écran Pygame est prêt
-
+        - L'état de victoire est défini
+        - L'écran Pygame est initialisé
         POST:
-        - Un message de fin est affiché si la condition est remplie
+        - Un message de fin est affiché si la condition de victoire est remplie
         """
-        if self.victory:
-            win_text = self.win_font.render(
+        if self.__victory:
+            win_text = self.__win_font.render(
                 "Simulation terminée.",
                 True,
                 Config.COLORS['text']
             )
-            self.screen.blit(
+            self.__screen.blit(
                 win_text,
                 (
                     Config.WINDOW_WIDTH // 2 - win_text.get_width() // 2,
@@ -481,10 +507,10 @@ class AntColonySimulation:
         - La simulation est terminée proprement
         - Pygame est fermé correctement
         """
-        while self.running:
+        while self.__running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    self.running = False
+                    self.__running = False
             
             self.update()
             self.render()
