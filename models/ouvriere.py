@@ -5,7 +5,7 @@ import math
 class Ouvriere(Ant):
     def __init__(self, position):
         super().__init__(position)
-        self.color = (0, 255, 0)  # Vert pour les ouvrières
+        self.color = (0, 0, 0)  # Vert pour les ouvrières
         self.size = Config.SIZES['ant']  # Taille standard des fourmis
 
     def perform_action(self, simulation) -> None:

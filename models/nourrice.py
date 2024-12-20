@@ -101,3 +101,4 @@ class Nourrice(Ant):
             else:
                 simulation.ants.append(Ouvriere(position))
                 print("Une nouvelle ouvrière a été créée.")
+
